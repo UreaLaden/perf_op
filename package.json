@@ -1,0 +1,21 @@
+{
+  "name": "ksi_telemetry",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^18.11.9",
+    "crypto": "^1.0.1",
+    "guid-typescript": "^1.0.9",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.1.1",
+    "typescript": "^4.8.4"
+  }
+}

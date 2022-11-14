@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+      "emitDecoratorMetadata":true,
+      "downlevelIteration": true,
+      "experimentalDecorators": true,
+      "target": "ES2016",
+      "module": "commonjs",
+      "sourceMap": true,
+      "outDir": "/Telemetry"
+    }
+  }
