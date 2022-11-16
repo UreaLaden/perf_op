@@ -15,10 +15,12 @@ const DevelopmentCodeForTesting = () => {
   }
   return false;
 };
-
+let scenarioName = "Render Main Window";
+const fileName = __filename.split("\\").pop();
 // To use the KeyScenarioIndex Logger we first instantiate the Logger
 // passing in a string for the current filename. (Filename is logged with telemetry)
-const logger = new KeyScenarioIndexLogger(__filename.split("\\").pop());
+// const logger = new KeyScenarioIndexLogger();
+const logger = KeyScenarioIndexLogger.Instance();
 
 /*To initialize the operation we then need to call startScenario 
 passing in the Scenario Name and expected timout threshold. The KSI Logger will log a 
@@ -27,8 +29,7 @@ This will return a scenarioContextID that that can be used to parse Telemetry.
 */
 
 // Situation 1 - Main Scenario Logging Only
-let scenarioContextID = logger.startSubScenario("Render Main Window", 3000);
-
+let scenarioContextID = logger.startScenario(scenarioName, 3000,fileName);
 try {
   // Example Production code to be executed
   //for (let i = 0; i < 10; i++) {
@@ -40,15 +41,16 @@ try {
     // as input.
 
     logger.logEvent(
+        scenarioName,
       scenarioContextID,
       result ? "User was logged in" : "User was not logged in"
     );
-    logger.logSuccess(scenarioContextID);
+    logger.logSuccess(scenarioName,scenarioContextID);
   //}
 } catch {
     // In the event there is a failure / error with production code we log a failure with the logFailure
     // method. Accepts only the scenarioContextID.
-  logger.logFailure(scenarioContextID);
+  logger.logFailure(scenarioName,scenarioContextID);
 }
 
 //Situation 2 - Sub Scenario Logging
@@ -58,12 +60,14 @@ try {
 // required to be logged in? We are then able to follow the sequence of events
 // via telemetry while maintaining a reference to the mainScenarioContext.
 
-let mainScenarioContextID = logger.startSubScenario("Render Secondary Window", 3000);
+scenarioName = "Render Secondary Window";
+let mainScenarioContextID = logger.startSubScenario(scenarioName, 3000,fileName,scenarioContextID);
 
 //To initiate the sub scenario we called the startSubScenario method. This time passing in the 
 //unique scenario name, timeout threshold and the mainScenarioContextID 
 //(If ommited we generate a unique GUID. The GUID must be unique)
-let subScenarioContexID = logger.startSubScenario("Create New User",2000,mainScenarioContextID);
+const subScenarioName = "Create New User";
+let subScenarioContexID = logger.startSubScenario(subScenarioName,2000,fileName,mainScenarioContextID);
 
 try {
   // Example Production code to be executed
@@ -73,23 +77,24 @@ try {
     // The process for logging events remains the same with the only
     // difference being the subScenarioContextID that is passed into our log methods
     if(i <= 6 && i >= 4 && result === false ){
-        logger.logFailure(subScenarioContexID);
+        logger.logFailure(subScenarioName,subScenarioContexID);
     }
     else{
-      logger.logEvent(subScenarioContexID,
+      logger.logEvent(subScenarioName,subScenarioContexID,
         result ? "User Creation Successful" : "User Creation Failed");
-      logger.logSuccess(subScenarioContexID);
+      logger.logSuccess(subScenarioName,subScenarioContexID);
     }
 
     logger.logEvent(
+        scenarioName,
         mainScenarioContextID,
       result ? "User was logged in" : "User was not logged in"
     );
-    logger.logSuccess(mainScenarioContextID);
+    logger.logSuccess(subScenarioName,mainScenarioContextID);
   //}
 } catch {
     // In the event there is a failure / error with production code we log a failure with the logFailure
     // method.This method accepts only the scenarioContextID.
-  logger.logFailure(mainScenarioContextID);
+  logger.logFailure(subScenarioName,mainScenarioContextID);
 }
 

@@ -8,49 +8,53 @@ var EventLogger_1 = require("./EventLogger");
  *
  */
 var KeyScenarioIndexLogger = /** @class */ (function () {
-    function KeyScenarioIndexLogger(fileName) {
+    function KeyScenarioIndexLogger() {
         this.scenarioCache = new Map();
+        this._traceID = guid_typescript_1.Guid.create().toString();
         this.timerId = setInterval(this.checkForTimeout.bind(this), 1000);
-        this._fileName = fileName;
     }
+    KeyScenarioIndexLogger.Instance = function () {
+        return this._Instance || (this._Instance = new this());
+    };
     /**
      * Initiate the event and properties to be logged
      * @param {string}scenarioName - Name of the operation to be conducted
      * @param {number}timeout In Milliseconds. Determines when to log a failure if scenario has expired
+     * @param {string} File name where scenario is located
      * @returns {string} scenarioContextID used to link (success and failure) messages to the scenario telemetry
      */
-    KeyScenarioIndexLogger.prototype.startScenario = function (scenarioName, timeout, scenarioContextID) {
+    KeyScenarioIndexLogger.prototype.startScenario = function (scenarioName, timeout, fileName) {
         //generate a new scenario id
         //If dev inputs already existing correlationId how should we handle?
         //Rename correlationId to scenarioContextID
-        var correlationId = scenarioContextID !== null && scenarioContextID !== void 0 ? scenarioContextID : guid_typescript_1.Guid.create().toString(); //In prod will use crypto.randomUUID()
+        var scenarioContextID = guid_typescript_1.Guid.create().toString(); //In prod will use crypto.randomUUID()
         var startTime = new Date(Date.now());
         var timeoutTime = this.CalculateTimeout(startTime, timeout);
-        //Create a new IScenario
+        //Create a new IScenarioContext
         var scenario = {
             scenarioContextID: scenarioContextID,
             scenarioName: scenarioName,
             startTime: startTime,
             lastReportedEventTime: startTime,
-            timoutThresholdTime: timeoutTime
+            timoutThresholdTime: timeoutTime,
+            fileName: fileName
         };
         //add to associated cache
-        this.scenarioCache.set(correlationId, scenario);
+        this.scenarioCache.set(scenarioContextID, scenario);
         //Log initial state to Telemetry
-        EventLogger_1.LogTelemetryMock(scenario, "Executing Scenario", this._fileName, 0, //Event Duration
-        0, //Total Duration
-        null //Scenario status is null since hasn't been completed
-        );
-        return correlationId;
+        EventLogger_1.LogTelemetryMock(scenario, "Executing Scenario", null, //Scenario status is null since hasn't been completed
+        this._traceID);
+        return scenarioContextID;
     };
     /**
      * Initiate a nested event and properties to be logged
      * @param {string}scenarioName - Name of the operation to be conducted
      * @param {number} timeout In Milliseconds. Determines when to log a failure if scenario has expired
+     * @param {string} File name where sub event was executed
      * @param {string} parentCorrelation correlationId.
      * @returns
      */
-    KeyScenarioIndexLogger.prototype.startSubScenario = function (scenarioName, timeout, parentScenarioContextID) {
+    KeyScenarioIndexLogger.prototype.startSubScenario = function (scenarioName, timeout, fileName, parentScenarioContextID) {
         var scenarioContextID = guid_typescript_1.Guid.create().toString(); //In prod will use crypto.randomUUID()
         var startTime = new Date(Date.now());
         var timeoutTime = this.CalculateTimeout(startTime, timeout);
@@ -59,8 +63,9 @@ var KeyScenarioIndexLogger = /** @class */ (function () {
             parentScenarioContextID: parentScenarioContextID,
             scenarioName: scenarioName,
             startTime: startTime,
+            timoutThresholdTime: timeoutTime,
             lastReportedEventTime: startTime,
-            timoutThresholdTime: timeoutTime
+            fileName: fileName
         };
         this.scenarioCache.set(scenarioContextID, scenario);
         return scenarioContextID;
@@ -77,23 +82,23 @@ var KeyScenarioIndexLogger = /** @class */ (function () {
      * Scenario has successfully completed
      * @param correlationId
      */
-    KeyScenarioIndexLogger.prototype.logSuccess = function (scenarioContextID) {
-        this.logProperties(scenarioContextID, "Scenario Completed Successfully", true, true);
+    KeyScenarioIndexLogger.prototype.logSuccess = function (scenarioName, scenarioContextID) {
+        this.logProperties(scenarioName, scenarioContextID, "Scenario Completed Successfully", true, true);
     };
     /**
      * Scenario has terminated unsuccessfully
      * @param correlationId
      */
-    KeyScenarioIndexLogger.prototype.logFailure = function (scenarioContextID) {
-        this.logProperties(scenarioContextID, "Scenario Failed", true, false);
+    KeyScenarioIndexLogger.prototype.logFailure = function (scenarioName, scenarioContextID) {
+        this.logProperties(scenarioName, scenarioContextID, "Scenario Failed", true, false);
     };
     /**
      * Scenario is still active. Logging custom message and leave scenario running
      * @param correlationId
      * @param message
      */
-    KeyScenarioIndexLogger.prototype.logEvent = function (scenarioContextID, message) {
-        this.logProperties(scenarioContextID, message, false);
+    KeyScenarioIndexLogger.prototype.logEvent = function (scenarioName, scenarioContextID, message) {
+        this.logProperties(scenarioName, scenarioContextID, message, false);
     };
     /**
      * Setup properties for logging to telemetry
@@ -103,37 +108,30 @@ var KeyScenarioIndexLogger = /** @class */ (function () {
      * @param {boolean} scenarioSuccessful - True if scenario was a success, false otherwise
      * @returns void
      */
-    KeyScenarioIndexLogger.prototype.logProperties = function (scenarioContextID, message, closeScenario, scenarioSuccessful) {
+    KeyScenarioIndexLogger.prototype.logProperties = function (scenarioName, scenarioContextID, message, closeScenario, scenarioSuccessful) {
         //Check if scenario exists
         var scenarioExists = this.scenarioExists(scenarioContextID);
         if (!scenarioExists) {
             //TODO: Implement this
-            EventLogger_1.LogErrorMock(scenarioContextID, this._fileName, "No existing scenario found matching scenarioContextID", 0, 0, false);
+            EventLogger_1.LogErrorMock(scenarioContextID, "No existing scenario found matching scenarioContextID", false, this._traceID);
             return;
         }
         var scenario = this.scenarioCache.get(scenarioContextID);
-        var duration = this.getDurationFromLastReportedEvent(scenario);
-        scenario.lastReportedEventTime = new Date(Date.now()); //update lastReportedEventTime
-        var totalDuration = this.calculateDuration(scenario.startTime, scenario.lastReportedEventTime);
         //Is scenario done executing
         if (closeScenario) {
             //TODO: Log into telemetry success/failure event [scenarioSuccessful]
             if (scenarioSuccessful) {
                 //this.logSuccess(correlationId);
-                EventLogger_1.LogTelemetryMock(scenario, "Scenario Success", this._fileName, duration, //Event Duration
-                totalDuration, //Total Duration
-                true);
+                EventLogger_1.LogTelemetryMock(scenario, "Scenario Success", true, this._traceID);
             }
             else {
-                EventLogger_1.LogTelemetryMock(scenario, "Scenario Failed", this._fileName, duration, //Event Duration
-                totalDuration, //Total Duration
-                false);
+                EventLogger_1.LogTelemetryMock(scenario, "Scenario Failed", false, this._traceID);
             }
             //remove from cache
             this.scenarioCache["delete"](scenarioContextID);
         }
         else {
-            EventLogger_1.LogTelemetryMock(scenario, message, this._fileName, duration, totalDuration, null);
+            EventLogger_1.LogTelemetryMock(scenario, message, null, this._traceID);
         }
     };
     /**
@@ -169,8 +167,8 @@ var KeyScenarioIndexLogger = /** @class */ (function () {
             if (value.timoutThresholdTime <= new Date(Date.now())) {
                 //Date is expired
                 //TODO: Log scenario expiration [this.logFailure]
-                _this.logEvent(value.scenarioContextID, "Scenario has reached timeout limit");
-                _this.logFailure(value.scenarioContextID);
+                _this.logEvent(value.scenarioName, value.scenarioContextID, "Scenario has reached timeout limit");
+                _this.logFailure(value.scenarioName, value.scenarioContextID);
             }
         });
     };
