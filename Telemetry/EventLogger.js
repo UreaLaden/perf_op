@@ -1,28 +1,34 @@
 "use strict";
 exports.__esModule = true;
 exports.LogErrorMock = exports.LogTelemetryMock = void 0;
-var LogTelemetryMock = function (scenario, message, eventDuration, totalDuration, scenarioStatus) {
+var LogTelemetryMock = function (scenario, message, fileName, eventDuration, totalDuration, scenarioSuccessful, activityId) {
+    var _a;
     console.table([{
-            "ScenarioName": scenario.scenarioName,
-            "CorrelationId": scenario.correlationId,
-            "FileName": scenario.fileName,
-            "StartTime": scenario.startTime,
             "TimeStamp": new Date(Date.now()),
+            "FileName": fileName,
+            "ScenarioName": scenario.scenarioName,
+            "scenarioContextID": scenario.scenarioContextID,
+            "ParentScenarioContextID": (_a = scenario.parentScenarioContextID) !== null && _a !== void 0 ? _a : null,
+            "ScenarioStartTime ": scenario.startTime,
             "Message": message,
-            "TotalDuration": totalDuration,
-            "ScenarioStatus": scenarioStatus,
-            "EventDuration": eventDuration
+            "DurationFromStart": totalDuration,
+            "IsScenarioSuccessful": scenarioSuccessful,
+            "DurationFromLastEvent": eventDuration,
+            "ActivityId": activityId
         }]);
 };
 exports.LogTelemetryMock = LogTelemetryMock;
-var LogErrorMock = function (correlationId, message, eventDuration, totalDuration, scenarioStatus) {
+var LogErrorMock = function (scenarioContextID, fileName, message, eventDuration, totalDuration, scenarioSuccessful, parentScenarioContextID, activityId) {
     console.table([{
-            "CorrelationId": correlationId,
-            "Message": message,
             "TimeStamp": new Date(Date.now()),
-            "TotalDuration": totalDuration,
-            "ScenarioStatus": scenarioStatus,
-            "EventDuration": eventDuration
+            "FileName": fileName,
+            "scenarioContextID": scenarioContextID,
+            "ParentScenarioContextID": parentScenarioContextID !== null && parentScenarioContextID !== void 0 ? parentScenarioContextID : null,
+            "Message": message,
+            "DurationFromStart": totalDuration,
+            "IsScenarioSuccessful": scenarioSuccessful,
+            "DurationFromLastEvent": eventDuration,
+            "ActivityId": activityId
         }]);
 };
 exports.LogErrorMock = LogErrorMock;

@@ -1,8 +1,9 @@
 export type IScenario = {  //todo: add additional properties as required
-    correlationId: string;
-    fileName: string;
+    scenarioContextID: string;
+    parentScenarioContextID?:string;
     scenarioName: string;
     startTime: Date;
     lastReportedEventTime: Date;  
-    timeoutTime: Date;      
+    timoutThresholdTime: Date;   
+    activityId?:string;   
 }

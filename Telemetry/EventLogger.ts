@@ -3,36 +3,46 @@ import { IScenario } from "./IScenario";
 export const LogTelemetryMock = (
   scenario: IScenario,
   message: string,
+  fileName:string,
   eventDuration: number,
   totalDuration: number,
-  scenarioStatus: boolean
+  scenarioSuccessful: boolean,
+  activityId?:string,
 ) => {
   console.table([{
-    "ScenarioName":scenario.scenarioName,
-    "CorrelationId":scenario.correlationId,
-    "FileName":scenario.fileName,
-    "StartTime":scenario.startTime,
     "TimeStamp":new Date(Date.now()),
+    "FileName":fileName,
+    "ScenarioName":scenario.scenarioName,
+    "scenarioContextID":scenario.scenarioContextID,
+    "ParentScenarioContextID": scenario.parentScenarioContextID ?? null,
+    "ScenarioStartTime ":scenario.startTime,
     "Message":message,
-    "TotalDuration":totalDuration,
-    "ScenarioStatus":scenarioStatus,
-    "EventDuration":eventDuration}]
+    "DurationFromStart":totalDuration,
+    "IsScenarioSuccessful":scenarioSuccessful,
+    "DurationFromLastEvent":eventDuration,
+    "ActivityId":activityId}]
   );
 };
 export const LogErrorMock = (
-  correlationId:string,
+  scenarioContextID:string,
+  fileName:string,
   message: string,
   eventDuration: number,
   totalDuration: number,
-  scenarioStatus: boolean
+  scenarioSuccessful: boolean,
+  parentScenarioContextID?:string,
+  activityId?:string
 ) => {
   console.table([{
-    "CorrelationId":correlationId,
-    "Message":message,
     "TimeStamp":new Date(Date.now()),
-    "TotalDuration":totalDuration,
-    "ScenarioStatus":scenarioStatus,
-    "EventDuration":eventDuration}]
+    "FileName":fileName,
+    "scenarioContextID":scenarioContextID,
+    "ParentScenarioContextID": parentScenarioContextID ?? null,
+    "Message":message,
+    "DurationFromStart":totalDuration,
+    "IsScenarioSuccessful":scenarioSuccessful,
+    "DurationFromLastEvent":eventDuration,
+    "ActivityId":activityId}]
   );
 };
 
