@@ -23,7 +23,7 @@ var KeyScenarioIndexLogger = /** @class */ (function () {
      * @param {string} File name where scenario is located
      * @returns {string} scenarioContextID used to link (success and failure) messages to the scenario telemetry
      */
-    KeyScenarioIndexLogger.prototype.startScenario = function (scenarioName, timeout, fileName) {
+    KeyScenarioIndexLogger.prototype.startMainScenario = function (scenarioName, timeout, fileName) {
         //generate a new scenario id
         //If dev inputs already existing correlationId how should we handle?
         //Rename correlationId to scenarioContextID
@@ -42,7 +42,7 @@ var KeyScenarioIndexLogger = /** @class */ (function () {
         //add to associated cache
         this.scenarioCache.set(scenarioContextID, scenario);
         //Log initial state to Telemetry
-        EventLogger_1.LogTelemetryMock(scenario, "Executing Scenario", null, //Scenario status is null since hasn't been completed
+        (0, EventLogger_1.LogTelemetryMock)(scenario, "Executing Scenario", null, //Scenario status is null since hasn't been completed
         this._traceID);
         return scenarioContextID;
     };
@@ -113,7 +113,7 @@ var KeyScenarioIndexLogger = /** @class */ (function () {
         var scenarioExists = this.scenarioExists(scenarioContextID);
         if (!scenarioExists) {
             //TODO: Implement this
-            EventLogger_1.LogErrorMock(scenarioContextID, "No existing scenario found matching scenarioContextID", false, this._traceID);
+            (0, EventLogger_1.LogErrorMock)(scenarioContextID, "No existing scenario found matching scenarioContextID", false, this._traceID);
             return;
         }
         var scenario = this.scenarioCache.get(scenarioContextID);
@@ -122,16 +122,16 @@ var KeyScenarioIndexLogger = /** @class */ (function () {
             //TODO: Log into telemetry success/failure event [scenarioSuccessful]
             if (scenarioSuccessful) {
                 //this.logSuccess(correlationId);
-                EventLogger_1.LogTelemetryMock(scenario, "Scenario Success", true, this._traceID);
+                (0, EventLogger_1.LogTelemetryMock)(scenario, "Scenario Success", true, this._traceID);
             }
             else {
-                EventLogger_1.LogTelemetryMock(scenario, "Scenario Failed", false, this._traceID);
+                (0, EventLogger_1.LogTelemetryMock)(scenario, "Scenario Failed", false, this._traceID);
             }
             //remove from cache
             this.scenarioCache["delete"](scenarioContextID);
         }
         else {
-            EventLogger_1.LogTelemetryMock(scenario, message, null, this._traceID);
+            (0, EventLogger_1.LogTelemetryMock)(scenario, message, null, this._traceID);
         }
     };
     /**
