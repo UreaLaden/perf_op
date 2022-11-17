@@ -29,7 +29,7 @@ export class KeyScenarioIndexLogger {
    * @param {string} File name where scenario is located
    * @returns {string} scenarioContextID used to link (success and failure) messages to the scenario telemetry
    */
-  public startScenario(
+  public startMainScenario(
     scenarioName: string,
     timeout: number,
     fileName:string,
@@ -151,8 +151,7 @@ export class KeyScenarioIndexLogger {
     //Check if scenario exists
     const scenarioExists: boolean = this.scenarioExists(scenarioContextID);
     if (!scenarioExists) {
-      //TODO: Implement this
-      LogErrorMock(
+      this.LogErrorMock(
         scenarioContextID,
         "No existing scenario found matching scenarioContextID",
         false,
@@ -169,14 +168,14 @@ export class KeyScenarioIndexLogger {
       if (scenarioSuccessful) {
         //this.logSuccess(correlationId);
 
-        LogTelemetryMock(
+        this.LogTelemetryMock(
           scenario,
           "Scenario Success",
           true,
           this._traceID
         );
       } else {
-        LogTelemetryMock(
+        this.LogTelemetryMock(
           scenario,
           "Scenario Failed",
           false,
@@ -187,7 +186,7 @@ export class KeyScenarioIndexLogger {
 
       this.scenarioCache.delete(scenarioContextID);
     } else {
-      LogTelemetryMock(scenario, message,null,this._traceID);
+      this.LogTelemetryMock(scenario, message,null,this._traceID);
     }
   }
 
@@ -246,4 +245,42 @@ export class KeyScenarioIndexLogger {
     newDate.setTime(time.getTime() + timoutInMs);
     return newDate;
   }
+
+  private LogTelemetryMock = (
+    scenario: IScenarioContext,
+    message: string,
+    scenarioSuccessful: boolean,
+    traceID:string,
+  ) => {
+    console.table([{
+      "TimeStamp":new Date(Date.now()),
+      "FileName":scenario.fileName,
+      "ScenarioName":scenario.scenarioName,
+      "scenarioContextID":scenario.scenarioContextID,
+      "ParentScenarioContextID": scenario.parentScenarioContextID ?? null,
+      "Message":message,
+      "IsScenarioSuccessful":scenarioSuccessful,
+      "TraceID":traceID}]
+    );
+  };
+  
+  private LogErrorMock = (
+    scenarioContextID:string,
+    message: string,
+    scenarioSuccessful: boolean,
+    traceID:string,
+    parentScenarioContextID?:string
+  ) => {
+    console.table([{
+      "TimeStamp":new Date(Date.now()),
+      "FileName":null,
+      "ScenarioName":null,
+      "scenarioContextID":scenarioContextID,
+      "ParentScenarioContextID": parentScenarioContextID ?? null,
+      "Message":message,
+      "IsScenarioSuccessful":scenarioSuccessful,
+      "TraceID":traceID}]
+    );
+  };
+  
 }
