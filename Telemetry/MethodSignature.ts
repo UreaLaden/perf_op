@@ -26,15 +26,14 @@ try {
   // as input.
   const message = result ? "User was logged in" : "User was not logged in";
   logger.logEvent(
-    scenarioName,
     scenarioContextID,
     message
   );
-  logger.logSuccess(scenarioName, scenarioContextID);
+  logger.logSuccess(scenarioContextID);
 } catch {
   // In the event there is a failure / error with production code we log a failure with the logFailure
   // method. Accepts only the scenarioContextID.
-  logger.logFailure(scenarioName, scenarioContextID);
+  logger.logFailure(scenarioContextID);
 }
 
 //Situation 2 - Sub Scenario Logging
@@ -61,23 +60,22 @@ try {
   // The process for logging events remains the same with the only
   // difference being the subScenarioContextID that is passed into our log methods
   if (i <= 6 && i >= 4 && result === false) {
-    logger.logFailure(subScenarioName, subScenarioContexID);
+    logger.logFailure(subScenarioContexID);
   }
   else {
     const subMessage = result ? "User Creation Successful" : "User Creation Failed";
-    logger.logEvent(subScenarioName, subScenarioContexID, subMessage);
-    logger.logSuccess(subScenarioName, subScenarioContexID);
+    logger.logEvent(subScenarioContexID, subMessage);
+    logger.logSuccess( subScenarioContexID);
   }
   const message = result ? "User was logged in" : "User was not logged in";
   logger.logEvent(
-    mainScenarioName,
     mainScenarioContextID,
     message
   );
-  logger.logSuccess(subScenarioName, mainScenarioContextID);
+  logger.logSuccess(mainScenarioContextID);
 } catch {
   // In the event there is a failure / error with production code we log a failure with the logFailure
   // method.This method accepts only the scenarioContextID.
-  logger.logFailure(subScenarioName, mainScenarioContextID);
+  logger.logFailure(mainScenarioContextID);
 }
 

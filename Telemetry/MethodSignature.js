@@ -2,12 +2,12 @@
 exports.__esModule = true;
 var KeyScenarioIndexLogger_1 = require("./KeyScenarioIndexLogger");
 var helpers_1 = require("./helpers");
-var scenarioName = "Render Main Window";
-var fileName = __filename.split("\\").pop();
 // To use the KeyScenarioIndex Logger we first instantiate the Logger
 // passing in a string for the current filename. (Filename is logged with telemetry)
 // const logger = new KeyScenarioIndexLogger();
 var logger = KeyScenarioIndexLogger_1.KeyScenarioIndexLogger.Instance();
+var scenarioName = "Render Main Window";
+var fileName = __filename.split("\\").pop();
 /*To initialize the operation we then need to call startScenario
 passing in the Scenario Name and expected timout threshold. The KSI Logger will log a
 failure event if this scenario expires.
@@ -17,20 +17,19 @@ This will return a scenarioContextID that that can be used to parse Telemetry.
 var scenarioContextID = logger.startMainScenario(scenarioName, 3000, fileName);
 try {
     // Example Production code to be executed
-    //for (let i = 0; i < 10; i++) {
-    var result = (0, helpers_1.DevelopmentCodeForTesting)();
+    var result = helpers_1.DevelopmentCodeForTesting();
     // On successful execution, we log an event with the logEvent method. This method accepts
     // a scenerioContextID and a message (This message can be tailored to the specific use case)
     // Additionally we log success using the logSuccess method which accepts the scenarioContextID
     // as input.
-    logger.logEvent(scenarioName, scenarioContextID, result ? "User was logged in" : "User was not logged in");
-    logger.logSuccess(scenarioName, scenarioContextID);
-    //}
+    var message = result ? "User was logged in" : "User was not logged in";
+    logger.logEvent(scenarioContextID, message);
+    logger.logSuccess(scenarioContextID);
 }
 catch (_a) {
     // In the event there is a failure / error with production code we log a failure with the logFailure
     // method. Accepts only the scenarioContextID.
-    logger.logFailure(scenarioName, scenarioContextID);
+    logger.logFailure(scenarioContextID);
 }
 //Situation 2 - Sub Scenario Logging
 // Using this framework we are able to log subprocesses within the context
@@ -47,24 +46,24 @@ var subScenarioName = "Create New User";
 var subScenarioContexID = logger.startSubScenario(mainScenarioName, 2000, fileName, mainScenarioContextID);
 try {
     // Example Production code to be executed
-    //for (let i = 0; i < 10; i++) {
-    var result = (0, helpers_1.DevelopmentCodeForTesting)();
+    var result = helpers_1.DevelopmentCodeForTesting();
     var i = Math.floor(Math.random() * 10);
     // The process for logging events remains the same with the only
     // difference being the subScenarioContextID that is passed into our log methods
     if (i <= 6 && i >= 4 && result === false) {
-        logger.logFailure(subScenarioName, subScenarioContexID);
+        logger.logFailure(subScenarioContexID);
     }
     else {
-        logger.logEvent(subScenarioName, subScenarioContexID, result ? "User Creation Successful" : "User Creation Failed");
-        logger.logSuccess(subScenarioName, subScenarioContexID);
+        var subMessage = result ? "User Creation Successful" : "User Creation Failed";
+        logger.logEvent(subScenarioContexID, subMessage);
+        logger.logSuccess(subScenarioContexID);
     }
-    logger.logEvent(mainScenarioName, mainScenarioContextID, result ? "User was logged in" : "User was not logged in");
-    logger.logSuccess(subScenarioName, mainScenarioContextID);
-    //}
+    var message = result ? "User was logged in" : "User was not logged in";
+    logger.logEvent(mainScenarioContextID, message);
+    logger.logSuccess(mainScenarioContextID);
 }
 catch (_b) {
     // In the event there is a failure / error with production code we log a failure with the logFailure
     // method.This method accepts only the scenarioContextID.
-    logger.logFailure(subScenarioName, mainScenarioContextID);
+    logger.logFailure(mainScenarioContextID);
 }

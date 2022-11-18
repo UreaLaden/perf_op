@@ -13,3 +13,10 @@
     }
     return false;
   };
+
+  export enum KSIOpCodes {
+    SCENARIO_START,
+    SCENARIO_END,
+    SCENARIO_INTERVAL,
+    SCENARIO_ERROR,
+}
